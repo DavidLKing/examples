@@ -218,7 +218,7 @@ class Lm:
         lr = args.lr
         best_val_loss = None
 
-        # TODO for some reason booleans are working
+        # TODO for some reason booleans aren't working
         if args.train == 1:
             # At any point you can hit Ctrl + C to break out of training early.
             try:
