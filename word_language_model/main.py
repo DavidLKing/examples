@@ -41,6 +41,8 @@ parser.add_argument('--cuda', action='store_true',
                     help='use CUDA')
 parser.add_argument('--log-interval', type=int, default=200, metavar='N',
                     help='report interval')
+parser.add_argument('--load', type=bool,  default=False,
+                    help='load the previous model from')
 parser.add_argument('--save', type=str,  default='model.pt',
                     help='path to save the final model')
 parser.add_argument('--train', type=int,  default=0,
@@ -89,7 +91,12 @@ class Lm:
         ###############################################################################
 
         ntokens = len(corpus.dictionary)
-        self.model = model.RNNModel(args.model, ntokens, args.emsize, args.nhid, args.nlayers, args.dropout, args.tied)
+        if args.load:
+            f = open(args.save, 'rb')
+            self.model = torch.load(f)
+            f.close()
+        else:
+            self.model = model.RNNModel(args.model, ntokens, args.emsize, args.nhid, args.nlayers, args.dropout, args.tied)
         if args.cuda:
             self.model.cuda()
 
@@ -141,7 +148,11 @@ class Lm:
         # Turn on evaluation mode which disables dropout.
         self.model.eval()
         total_loss = 0
-        ntokens = len(corpus.dictionary)
+        # DLK hack time:
+        if args.load:
+            ntokens = int(str(self.model.decoder).split(',')[1].split('=')[1][0:-1])
+        else:
+            ntokens = len(corpus.dictionary)
         hidden = self.model.init_hidden(self.eval_batch_size)
         for i in range(0, data_source.size(0) - 1, args.bptt):
             data, targets = self.get_batch(data_source, i, evaluation=True)
@@ -163,7 +174,11 @@ class Lm:
                 self.model.eval()
                 total_loss = 0
                 # ntokens = len(corpus.dictionary)
-                ntokens = len(corpus.dictionary)
+                # DLK hack time:
+                if args.load:
+                    ntokens = int(str(self.model.decoder).split(',')[1].split('=')[1][0:-1])
+                else:
+                    ntokens = len(corpus.dictionary)
                 # hidden = self.model.init_hidden(self.eval_batch_size)
                 hidden = self.model.init_hidden(1)
                 for i in range(0, data_source.size(0) - 1, args.bptt):
@@ -184,7 +199,11 @@ class Lm:
         self.model.train()
         total_loss = 0
         start_time = time.time()
-        ntokens = len(corpus.dictionary)
+        # DLK hack time:
+        if args.load:
+            ntokens = int(str(self.model.encoder).split('(')[1].split(',')[0])
+        else:
+            ntokens = len(corpus.dictionary)
         hidden = self.model.init_hidden(args.batch_size)
         for batch, i in enumerate(range(0, self.train_data.size(0) - 1, args.bptt)):
             data, targets = self.get_batch(self.train_data, i)
