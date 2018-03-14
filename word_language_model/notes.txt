@@ -1,0 +1,6 @@
+
+Sample usages:
+-load model, don't retrain, rank test
+python main.py --cuda --emsize 650 --nhid 650 --tied --train 0 --save model.15.pt --load True --rank True --data data/vp-data/
+-load model, retrain, num of epochs, normal test
+python main.py --cuda --emsize 650 --nhid 650 --tied --train 0 --epochs 14 --save model.15.pt --load True --data data/wikitext-2/
