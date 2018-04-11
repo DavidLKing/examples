@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 
 import pdb
 # from __future__ import division
@@ -165,8 +166,11 @@ def test(log_steps=True):
     # gen = BeamGen(ref,cs,log_steps=log_steps)
     # gen = BeamGen(ref,charscore,log_steps=log_steps)
     gen = BeamGen(ref,wordscore,log_steps=log_steps)
-    gen = BeamGen(ref2,wordscore,log_steps=log_steps)
+    pdb.set_trace()
+		gen = BeamGen(ref2,wordscore,log_steps=log_steps)
+		pdb.set_trace()
     gen = BeamGen(ref3,wordscore,log_steps=log_steps)
+		pdb.set_trace()
     return gen.search()
     
 # run test as main

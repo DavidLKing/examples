@@ -61,6 +61,7 @@ class Score:
         total_loss = 0
         # ntokens = len(corpus.dictionary)
         # DLK hack time:
+        pdb.set_trace()
         ntokens = int(str(model.decoder).split(',')[1].split('=')[1][0:-1])
         # hidden = self.model.init_hidden(self.eval_batch_size)
         hidden = model.init_hidden(1)
