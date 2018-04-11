@@ -156,6 +156,8 @@ class BeamGen:
 # test beam search
 def test(log_steps=True):
     ref = 'Kim loves Sandy madly'.split()
+    ref2 = 'President Bush on Tuesday nominated two individuals to replace retiring jurists on federal courts in the Washington area'.split()
+    ref3 = 'From the AP comes this story :'.split()
     #ref = 'Kim loves Sandy , CEO of XYZ Corp. , madly'.split()
     if log_steps:
         print('generating from ref:', ref)
@@ -163,6 +165,8 @@ def test(log_steps=True):
     # gen = BeamGen(ref,cs,log_steps=log_steps)
     # gen = BeamGen(ref,charscore,log_steps=log_steps)
     gen = BeamGen(ref,wordscore,log_steps=log_steps)
+    gen = BeamGen(ref2,wordscore,log_steps=log_steps)
+    gen = BeamGen(ref3,wordscore,log_steps=log_steps)
     return gen.search()
     
 # run test as main
