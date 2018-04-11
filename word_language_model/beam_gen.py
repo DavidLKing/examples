@@ -31,7 +31,7 @@ def characterize(sent):
     return ' '.join(seq)
 
 charscore = lambda sent: float(lstmscore(characterize(sent))[0])
-wordscore = lambda sent: float(lstmscore(lstmify(sent))[0])
+wordscore = lambda sent: lstmscore(lstmify(sent))[0][0]
 
 # a simple 2-gram precision scorer
 class Bleu2:
@@ -127,7 +127,7 @@ class BeamGen:
                     # update permutation vector
                     new_cand.perm[idx] = len(new_cand.hyp) - 1
                     # update score
-                    # pdb.set_trace()
+                    pdb.set_trace()
                     new_cand.score = self.cand_scorer(new_cand)
                     # add to new beam
                     new_beam.append(new_cand)
@@ -155,10 +155,7 @@ class BeamGen:
         return self.beam
                      
 # test beam search
-def test(log_steps=True):
-    ref = 'Kim loves Sandy madly'.split()
-    ref2 = 'President Bush on Tuesday nominated two individuals to replace retiring jurists on federal courts in the Washington area'.split()
-    ref3 = 'From the AP comes this story :'.split()
+def test(ref, log_steps=True):
     #ref = 'Kim loves Sandy , CEO of XYZ Corp. , madly'.split()
     if log_steps:
         print('generating from ref:', ref)
@@ -166,13 +163,14 @@ def test(log_steps=True):
     # gen = BeamGen(ref,cs,log_steps=log_steps)
     # gen = BeamGen(ref,charscore,log_steps=log_steps)
     gen = BeamGen(ref,wordscore,log_steps=log_steps)
-    pdb.set_trace()
-		gen = BeamGen(ref2,wordscore,log_steps=log_steps)
-		pdb.set_trace()
-    gen = BeamGen(ref3,wordscore,log_steps=log_steps)
-		pdb.set_trace()
     return gen.search()
     
 # run test as main
-if __name__ == "__main__": test()
+if __name__ == "__main__":
+    ref = 'Kim loves Sandy madly'.split()
+    ref2 = 'President Bush on Tuesday nominated two individuals to replace retiring jurists on federal courts in the Washington area'.split()
+    ref3 = 'From the AP comes this story :'.split()
+    test(ref)
+    test(ref2)
+    test(ref3)
 
