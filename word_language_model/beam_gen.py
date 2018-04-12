@@ -11,7 +11,9 @@ import score
 # model = s.load_model('./models/model.en.char.pt')
 # word level testing
 s = score.Score('./data/en-word')
+# s = score.Score('./data/en-char')
 model = s.load_model('./models/model.en.word.pt')
+# model = s.load_model('./models/model.en.char.pt')
 lstmscore = lambda cand: s.score_sent(cand, model)
 # formatting
 def lstmify(sent):
@@ -154,21 +156,19 @@ class BeamGen:
         return self.beam
                      
 # test beam search
-def test(log_steps=True):
-    ref = 'Kim loves Sandy madly'.split()
-    ref2 = 'President Bush on Tuesday nominated two individuals to replace retiring jurists on federal courts in the Washington area'.split()
-    ref3 = 'From the AP comes this story :'.split()
-    #ref = 'Kim loves Sandy , CEO of XYZ Corp. , madly'.split()
+def test(ref, log_steps=True):
     if log_steps:
         print('generating from ref:', ref)
     cs = bleu2_cand_scorer(ref)
     # gen = BeamGen(ref,cs,log_steps=log_steps)
     # gen = BeamGen(ref,charscore,log_steps=log_steps)
     gen = BeamGen(ref,wordscore,log_steps=log_steps)
-    gen = BeamGen(ref2,wordscore,log_steps=log_steps)
-    gen = BeamGen(ref3,wordscore,log_steps=log_steps)
     return gen.search()
     
 # run test as main
-if __name__ == "__main__": test()
-
+if __name__ == "__main__": 
+    ref = 'Kim loves Sandy madly'.split()
+    ref2 = 'President Bush on Tuesday nominated two individuals to replace retiring jurists on federal courts in the Washington area'.split()
+    ref3 = 'From the AP comes this story :'.split()
+    pdb.set_trace()
+    test(ref)
