@@ -10,10 +10,10 @@ import score
 # s = score.Score('./data/en-char')
 # model = s.load_model('./models/model.en.char.pt')
 # word level testing
-s = score.Score('./data/en-word')
-# s = score.Score('./data/en-char')
-model = s.load_model('./models/model.en.word.pt')
-# model = s.load_model('./models/model.en.char.pt')
+# s = score.Score('./data/en-word')
+s = score.Score('./data/en-char')
+# model = s.load_model('./models/model.en.word.pt')
+model = s.load_model('./models/model.en.char.pt')
 lstmscore = lambda cand: s.score_sent(cand, model)
 # formatting
 def lstmify(sent):
@@ -28,11 +28,13 @@ def characterize(sent):
     seq = sent.hyp
     seq = ' '.join(seq)[4:]
     seq = seq.replace(' ', '@')
+    seq = ' '.join(seq)
     seq = seq.replace('</s>', '<eos>')
-    return ' '.join(seq)
+    pdb.set_trace()
+    return seq
 
-charscore = lambda sent: float(lstmscore(characterize(sent))[0])
-wordscore = lambda sent: float(lstmscore(lstmify(sent))[0])
+charscore = lambda sent: float(lstmscore(characterize(sent))[0][0])
+wordscore = lambda sent: float(lstmscore(lstmify(sent))[0][0])
 
 # a simple 2-gram precision scorer
 class Bleu2:
