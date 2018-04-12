@@ -61,7 +61,22 @@ class Score:
         total_loss = 0
         # ntokens = len(corpus.dictionary)
         # DLK hack time:
-        ntokens = int(str(model.decoder).split(',')[1].split('=')[1][0:-1])
+        # pdb.set_trace()
+        # File "/fs/project/white.1240/king/examples/word_language_model/score.py", line 65, in score_sent
+        # ntokens = int(str(model.decoder).split(',')[1].split('=')[1][0:-1])
+        # IndexError: list index out of range
+        try:
+            ntokens = int(
+                str(
+                    model.decoder
+                ).split(',')[1].split('=')[1][0:-1]
+            )
+        except:
+            ntokens = int(
+                str(
+                    model.decoder
+                ).split(" ")[3][0:-1]
+            )
         # hidden = self.model.init_hidden(self.eval_batch_size)
         hidden = model.init_hidden(1)
         # for i in range(0, data_source.size(0) - 1, args.bptt):
