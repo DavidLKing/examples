@@ -10,15 +10,16 @@ import score
 # s = score.Score('./data/en-char')
 # model = s.load_model('./models/model.en.char.pt')
 # word level testing
-# s = score.Score('./data/en-word')
-s = score.Score('./data/en-char')
-# model = s.load_model('./models/model.en.word.pt')
-model = s.load_model('./models/model.en.char.pt')
+s = score.Score('./data/en-word')
+# s = score.Score('./data/en-char')
+model = s.load_model('./models/model.en.word.pt')
+# model = s.load_model('./models/model.en.char.pt')
 lstmscore = lambda cand: s.score_sent(cand, model)
 # formatting
 def lstmify(sent):
     # characterize = lambda sent: ' '.join(' '.join(sent.hyp)[4:].replace(' ', '@').replace('</s>', '<eos>'))
     seq = sent.hyp
+    # remove the <s>, that's already the LSTM's input
     seq = ' '.join(seq)[4:]
     seq = seq.replace('</s>', '<eos>')
     return seq
@@ -26,6 +27,7 @@ def lstmify(sent):
 def characterize(sent):
     # characterize = lambda sent: ' '.join(' '.join(sent.hyp)[4:].replace(' ', '@').replace('</s>', '<eos>'))
     seq = sent.hyp
+    # remove the <s>, that's already the LSTM's input
     seq = ' '.join(seq)[4:]
     seq = seq.replace(' ', '@')
     seq = ' '.join(seq)
@@ -33,8 +35,24 @@ def characterize(sent):
     pdb.set_trace()
     return seq
 
-charscore = lambda sent: float(lstmscore(characterize(sent))[0][0])
-wordscore = lambda sent: float(lstmscore(lstmify(sent))[0][0])
+def unkify(sent, lang):
+    newsent = []
+    for word in sent.hyp:
+        if word not in lang and word not in ['<s>', '</s>']:
+            newsent.append('UNK')
+        else:
+            newsent.append(word)
+    sent.hyp = newsent
+    return sent
+
+"""
+Scores are negative since the LSTM outputs loss over a sequence (cross entropy or neg. log. likelihood).
+We want sents w/ minimal loss (common sequences)
+Once negative, the sorting and pull the max should be the same as pulling the min w/o changing 
+the rest of the code
+"""
+charscore = lambda sent: -float(lstmscore(characterize(unkify(sent, s.data.dictionary.word2idx)))[0][0])
+wordscore = lambda sent: -float(lstmscore(lstmify(unkify(sent, s.data.dictionary.word2idx)))[0][0])
 
 # a simple 2-gram precision scorer
 class Bleu2:
@@ -172,5 +190,6 @@ if __name__ == "__main__":
     ref = 'Kim loves Sandy madly'.split()
     ref2 = 'President Bush on Tuesday nominated two individuals to replace retiring jurists on federal courts in the Washington area'.split()
     ref3 = 'From the AP comes this story :'.split()
-    pdb.set_trace()
     test(ref)
+    test(ref2)
+    test(ref3)
