@@ -120,9 +120,9 @@ class Lm:
 
 
     def repackage_hidden(self, h):
-        """Wraps hidden states in new Variables, to detach them from their history."""
-        if type(h) == Variable:
-            return Variable(h.data)
+        """Wraps hidden states in new Tensors, to detach them from their history."""
+        if isinstance(h, torch.Tensor):
+            return h.detach()
         else:
             return tuple(self.repackage_hidden(v) for v in h)
 
@@ -137,30 +137,32 @@ class Lm:
     # by the batchify function. The chunks are along dimension 0, corresponding
     # to the seq_len dimension in the LSTM.
 
-    def get_batch(self, source, i, evaluation=False):
+    def get_batch(self, source, i):
         seq_len = min(args.bptt, len(source) - 1 - i)
-        data = Variable(source[i:i+seq_len], volatile=evaluation)
-        target = Variable(source[i+1:i+1+seq_len].view(-1))
+        data = source[i:i+seq_len]
+        target = source[i+1:i+1+seq_len].view(-1)
         return data, target
 
 
     def evaluate(self, data_source):
         # Turn on evaluation mode which disables dropout.
+        # Turn on evaluation mode which disables dropout.
         self.model.eval()
-        total_loss = 0
+        total_loss = 0.
         # DLK hack time:
         if args.load:
-            ntokens = int(str(self.model.decoder).split(',')[1].split('=')[1][0:-1])
+            ntokens = int(str(self.model.decoder).split(',')[1].split('=')[1])
         else:
             ntokens = len(corpus.dictionary)
         hidden = self.model.init_hidden(self.eval_batch_size)
-        for i in range(0, data_source.size(0) - 1, args.bptt):
-            data, targets = self.get_batch(data_source, i, evaluation=True)
-            output, hidden = self.model(data, hidden)
-            output_flat = output.view(-1, ntokens)
-            total_loss += len(data) * self.criterion(output_flat, targets).data
-            hidden = self.repackage_hidden(hidden)
-        return total_loss[0] / len(data_source)
+        with torch.no_grad():
+            for i in range(0, data_source.size(0) - 1, args.bptt):
+                data, targets = self.get_batch(data_source, i)
+                output, hidden = self.model(data, hidden)
+                output_flat = output.view(-1, ntokens)
+                total_loss += len(data) * self.criterion(output_flat, targets).item()
+                hidden = self.repackage_hidden(hidden)
+        return total_loss / len(data_source)
 
     def individ_evaluate(self):
         losses = []
@@ -176,21 +178,20 @@ class Lm:
                 # ntokens = len(corpus.dictionary)
                 # DLK hack time:
                 if args.load:
-                    ntokens = int(str(self.model.decoder).split(',')[1].split('=')[1][0:-1])
+                    ntokens = int(str(self.model.decoder).split(',')[1].split('=')[1])
                 else:
                     ntokens = len(corpus.dictionary)
                 # hidden = self.model.init_hidden(self.eval_batch_size)
                 hidden = self.model.init_hidden(1)
                 for i in range(0, data_source.size(0) - 1, args.bptt):
-                    data, targets = self.get_batch(data_source, i, evaluation=True)
+                    data, targets = self.get_batch(data_source, i)
                     # print("data\n", data)
                     # print("targets\n", targets)
                     output, hidden = self.model(data, hidden)
                     output_flat = output.view(-1, ntokens)
-                    total_loss += len(data) * self.criterion(output_flat, targets).data
+                    total_loss += len(data) * self.criterion(output_flat, targets).item()
                     hidden = self.repackage_hidden(hidden)
                 losses.append(total_loss)
-        # pdb.set_trace()
         return losses # total_loss[0] / len(data_source)
 
 
@@ -271,7 +272,6 @@ class Lm:
             test_loss = self.individ_evaluate()
             with open('results.tsv', 'w') as outfile:
                 for ppl in test_loss:
-                    # pdb.set_trace()
                     outfile.write(str(float(ppl)) + '\n')
         else:
             test_loss = self.evaluate(self.test_data)
